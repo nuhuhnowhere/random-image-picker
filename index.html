@@ -120,7 +120,14 @@
                         </div>
                     </div>
                     <h1 class="mt-4 step-1-clear" id="yourimagestitle"></h1>
-                    <div id="images" class="step-1-clear"></div>
+                    <div id="images" class="step-1-clear"></div><div id="weight-control" style="margin-top: 20px;">
+                        <label for="image-index-input">Image index:</label>
+                        <input type="number" id="image-index-input" min="0" placeholder="e.g. 0 for first image" />
+                        <label for="image-weight-input">Weight:</label>
+                        <input type="number" id="image-weight-input" min="1" placeholder="e.g. 5" />
+                        <button onclick="updateImageWeight()">Set Weight</button>
+                    </div>
+
                 </div>
                 <div class="col-12">
                     <div class="alert alert-warning" role="alert">
