@@ -1,11 +1,10 @@
-let IMAGES = []; // Will put all images in this
+let IMAGES = []; // Will store image objects with a weight property
 let pickedImageHistory = []; // Will put all picked images in this
 const ROUNDS = 1; // Amount of rounds the carousel will shift trough
 const CAROUSEL_TIME = 5; // Total time in seconds carousel will spin
 
 function loadImages() {
     $("#start-button").prop("disabled", false);
-
     $("#yourimagestitle").html("Selected images");
     $("#random-image-div").css("display", "none");
     const images = $("#images");
@@ -18,11 +17,24 @@ function loadImages() {
             data = images.html();
             data += `<img alt="imagepicker.org carousel image" class="img-thumbnail thumbnail" src="${oFREvent.target.result}">`;
             $("#images").html(data);
-            IMAGES.push(oFREvent.target.result);
+            // Each image has a weight, for example, default 1
+            IMAGES.push({ src: oFREvent.target.result, weight: 1 });
         };
     }
 
     pa.track({name: "Load images", value: IMAGES.length});
+}
+
+// Function to set the weight of an image
+function setImageWeight(imageIndex, weight) {
+    IMAGES[imageIndex].weight = weight;
+}
+
+// Example: Update weight of selected image
+function updateImageWeight() {
+    const imageIndex = getSelectedImageIndex();  // Implement logic to get index of the selected image
+    const weight = document.getElementById("image-weight-input").value;
+    setImageWeight(imageIndex, parseInt(weight, 10));
 }
 
 function pickRandomImage() {
@@ -36,13 +48,50 @@ function pickRandomImage() {
         $("#information-text").html("No images left");
         $("#random-image-div").css("display", "none");
     } else {
-        const selected = Math.floor(Math.random() * IMAGES.length); // Pick random image
+        // Weighted random selection
+        const selected = pickWeightedRandomImage();
         if (directly) {
             setFinalImage(selected, deleteImage);
         } else {
             doCarousel(selected, deleteImage);
         }
     }
+}
+
+function pickWeightedRandomImage() {
+    const totalWeight = IMAGES.reduce((sum, image) => sum + image.weight, 0);
+    const randomWeight = Math.random() * totalWeight;
+    let cumulativeWeight = 0;
+
+    for (let i = 0; i < IMAGES.length; i++) {
+        cumulativeWeight += IMAGES[i].weight;
+        if (randomWeight < cumulativeWeight) {
+            return i;  // Return the index of the selected image
+        }
+    }
+    return IMAGES.length - 1;  // Fallback (shouldn't really hit this line)
+}
+
+function updateImageWeight() {
+    const indexInput = document.getElementById("image-index-input");
+    const weightInput = document.getElementById("image-weight-input");
+
+    const imageIndex = parseInt(indexInput.value, 10);
+    const weight = parseInt(weightInput.value, 10);
+
+    if (
+        isNaN(imageIndex) ||
+        isNaN(weight) ||
+        imageIndex < 0 ||
+        imageIndex >= IMAGES.length ||
+        weight < 1
+    ) {
+        alert("Please enter a valid image index and weight (1 or higher).");
+        return;
+    }
+
+    IMAGES[imageIndex].weight = weight;
+    alert(`Set weight of image #${imageIndex} to ${weight}`);
 }
 
 function doCarousel(selected, deleteImage) {
